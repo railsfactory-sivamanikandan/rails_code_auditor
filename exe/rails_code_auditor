@@ -1,0 +1,4 @@
+#!/usr/bin/env ruby
+
+require "rails_code_auditor"
+RailsCodeAuditor.run(ARGV)
