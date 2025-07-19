@@ -40,10 +40,10 @@ module RailsCodeAuditor
           pdf.text "Visual Graphs", size: 16, style: :bold
           pdf.move_down 10
 
-          graphs.each do |title, path|
-            if File.exist?(path)
-              pdf.text title, size: 12, style: :bold
-              pdf.image path, fit: [500, 300]
+          graphs.each do |graph|
+            if File.exist?(graph[:path])
+              pdf.text graph[:title], size: 12, style: :bold
+              pdf.image graph[:path], fit: [500, 300]
               pdf.move_down 20
             end
           end

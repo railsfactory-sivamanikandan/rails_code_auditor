@@ -18,7 +18,6 @@ module RailsCodeAuditor
              end
     graphs = Grapher.generate(scores)
     PdfGenerator.generate(results, scores, graphs)
-
     puts "[✓] Audit complete. PDF report generated."
   end
 end

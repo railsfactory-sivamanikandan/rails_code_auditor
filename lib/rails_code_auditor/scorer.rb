@@ -20,6 +20,12 @@ module RailsCodeAuditor
         }
       }
 
+      overall = overall_score(scores)
+      scores[:overall] = {
+        score: overall,
+        remark: remark_for(overall)
+      }
+
       scores
     end
 
@@ -33,32 +39,67 @@ module RailsCodeAuditor
     end
 
     def self.security_score(results)
-      brakeman_warnings = extract_issue_count(results[:brakeman][:status])
-      audit_issues = extract_issue_count(results[:bundler_audit][:status])
-
+      brakeman_warnings = extract_issue_count(results.dig(:brakeman, :status))
+      audit_issues = extract_issue_count(results.dig(:bundler_audit, :status))
       total = brakeman_warnings + audit_issues
-      calculate_score(total, [brakeman_warnings, audit_issues].count { |n| n > 0 })
+      active_tools = [brakeman_warnings, audit_issues].count { |n| n > 0 }
+      calculate_score(total, active_tools)
     end
 
     def self.code_quality_score(results)
-      rubocop_issues = extract_issue_count(results[:rubocop][:status])
-      best_practice_issues = extract_issue_count(results[:rails_best_practices][:status])
-      reek_issues = extract_issue_count(results[:reek][:status])
-      rubycritic_issues = extract_issue_count(results[:rubycritic][:status])
+      rubocop_issues = extract_issue_count(results.dig(:rubocop, :status))
+      best_practice_issues = extract_issue_count(results.dig(:rails_best_practices, :status))
+      reek_issues = extract_issue_count(results.dig(:reek, :status))
+      flay_issues = extract_issue_count(results.dig(:flay, :status))
+      flog_issues = extract_issue_count(results.dig(:flog, :status))
 
-      total = rubocop_issues + best_practice_issues + reek_issues + rubycritic_issues
-      calculate_score(total, [rubocop_issues, best_practice_issues, reek_issues, rubycritic_issues].count { |n| n > 0 })
+      tool_issues = [
+        rubocop_issues,
+        best_practice_issues,
+        reek_issues,
+        flay_issues,
+        flog_issues
+      ]
+
+      total_issues = tool_issues.sum
+      active_tool_count = tool_issues.count { |n| n > 0 }
+
+      issue_score = calculate_score(total_issues, active_tool_count)
+
+      # Handle RubyCritic separately (not as issue count)
+      rubycritic_score = extract_rubycritic_score(results.dig(:rubycritic, :status))
+
+      # Combine average
+      if rubycritic_score
+        ((issue_score + rubycritic_score) / 2.0).round
+      else
+        issue_score
+      end
+    end
+
+    def self.extract_rubycritic_score(status)
+      return nil unless status.is_a?(String)
+      if status.include?("Score:") && (match = status.match(/Score:\s*([0-9.]+)/))
+        match[1].to_f.round
+      end
     end
 
     def self.dependency_score(results)
-      license_issues = extract_issue_count(results[:license_finder][:status])
-      calculate_score(license_issues, license_issues > 0 ? 1 : 0)
+      license_issues = extract_issue_count(results.dig(:license_finder, :status))
+      active_tools = license_issues > 0 ? 1 : 0
+      calculate_score(license_issues, active_tools)
     end
 
-    def self.test_coverage_score(_results)
-      # You can later plug in test coverage logic here.
-      # For now return 100 if not available.
-      100
+    def self.test_coverage_score(results)
+      # Expecting something like: "Coverage: 85.34%"
+      status = results.dig(:simplecov, :status)
+      return 100 unless status.is_a?(String)
+
+      if status.match(/Coverage:\s*([\d.]+)/)
+        $1.to_f.round
+      else
+        0
+      end
     end
 
     def self.extract_issue_count(status)
@@ -75,11 +116,15 @@ module RailsCodeAuditor
       return 100 if issue_count == 0
       return 0 if active_tool_count == 0
 
-      # Simple deduction: every issue drops score a bit.
       score = 100 - (issue_count.to_f / (active_tool_count * 10)) * 10
-      score = 0 if score < 0
-      score = 100 if score > 100
-      score.round
+      [[score.round, 0].max, 100].min
+    end
+
+    def self.overall_score(scores_hash)
+      category_scores = scores_hash.values.map { |v| v[:score] }
+      return 0 if category_scores.empty?
+
+      (category_scores.sum / category_scores.size.to_f).round
     end
   end
 end

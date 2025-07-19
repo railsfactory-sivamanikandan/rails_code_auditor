@@ -2,15 +2,15 @@ module RailsCodeAuditor
   class ReportGenerator
     def self.normalize(results)
       {
-        brakeman: summarize_brakeman(results[:brakeman]),
-        bundler_audit: summarize_bundler(results[:bundler_audit]),
-        rubocop: summarize_rubocop(results[:rubocop]),
-        rails_best_practices: summarize_text_tool("Rails Best Practices", results[:rails_best_practices]),
-        flay: summarize_text_tool("Flay", results[:flay]),
-        flog: summarize_text_tool("Flog", results[:flog]),
-        license_finder: summarize_license_finder(results[:license_finder]),
-        reek: summarize_reek(results[:reek]),
-        rubycritic: summarize_reek(results[:rubycritic]),
+        brakeman: summarize_brakeman(results[:brakeman][:json]),
+        bundler_audit: summarize_bundler(results[:bundler_audit][:json]),
+        rubocop: summarize_rubocop(results[:rubocop][:json]),
+        rails_best_practices: summarize_rails_best_practices(results[:rails_best_practices][:json]),
+        flay: summarize_text_tool("Flay", results[:flay][:text]),
+        flog: summarize_text_tool("Flog", results[:flog][:text]),
+        license_finder: summarize_license_finder(results[:license_finder][:json]),
+        reek: summarize_reek(results[:reek][:json]),
+        rubycritic: summarize_rubycritic(results[:rubycritic][:json]),
       }
     end
 
@@ -44,6 +44,22 @@ module RailsCodeAuditor
       }
     end
 
+    def self.summarize_rails_best_practices(raw)
+      issues = JSON.parse(raw) rescue []
+
+      status = "#{issues.size} issue#{'s' unless issues.size == 1}"
+      grouped = issues.group_by { |issue| issue["message"] }
+
+      details = grouped.map do |message, group|
+        "#{message} (#{group.size}x)"
+      end.join("\n")
+
+      {
+        status: status,
+        details: details
+      }
+    end
+
     def self.summarize_text_tool(name, raw)
       lines = raw.split("\n").reject(&:empty?)
       {
@@ -63,24 +79,37 @@ module RailsCodeAuditor
     end
 
     def self.summarize_reek(raw)
-      raw = raw.to_json if raw.is_a?(Array)
-      lines = raw.split("\n").reject(&:empty?)
-      smelly_lines = lines.select { |line| line.include?('has the') || line.include?('smell') }
+      parsed = raw.is_a?(String) ? JSON.parse(raw, symbolize_names: true) : raw
+
+      unless parsed.is_a?(Array)
+        puts "JSON array but got #{parsed.class}"
+      end
+
+      total_smells = parsed.size
+      sample_smells = parsed.first(10)
+
+      details = sample_smells.map do |smell|
+        "#{smell['source']} [#{smell['lines'].join(', ')}]: #{smell['message']} (#{smell['smell_type']})"
+      end
 
       {
-        status: "#{smelly_lines.size} smell#{'s' unless smelly_lines.size == 1}",
-        details: smelly_lines.first(10).join("\n") + (smelly_lines.size > 10 ? "\n..." : "")
+        status: "#{total_smells} smell#{'s' unless total_smells == 1}",
+        details: details.join("\n") + (total_smells > 10 ? "\n..." : "")
       }
     end
 
     def self.summarize_rubycritic(raw)
-      lines = raw.split("\n").reject(&:empty?)
-      score_line = lines.find { |line| line.include?("Score") }
+      lines = raw.to_s.split("\n").map(&:strip).reject(&:empty?)
 
-      issues = lines.select { |l| l.match?(/\b[FABCDE]\b\s+-\s+/) } # grade lines
+      # Extract score
+      score_line = lines.find { |line| line.match?(/^Score:\s+\d+(\.\d+)?$/) }
+      score = score_line&.match(/Score:\s+([\d.]+)/)&.captures&.first
+
+      # Extract letter-grade issues (lines that start with a grade followed by a dash)
+      issues = lines.select { |line| line.match?(/^\b[FABCDE]\b\s+-\s+/) }
 
       {
-        status: score_line || "No score found",
+        status: score ? "Score: #{score}" : "No score found",
         details: issues.first(10).join("\n") + (issues.size > 10 ? "\n..." : "")
       }
     end
