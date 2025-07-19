@@ -1,43 +1,132 @@
-# RailsCodeAuditor
+# 🚀 RailsCodeAuditor
 
-TODO: Delete this and the text below, and describe your gem
+**Rails Code Auditor** is a Ruby gem that automatically audits your Ruby on Rails applications for security, performance, code quality, and licensing issues.
 
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/rails_code_auditor`. To experiment with that code, run `bin/console` for an interactive prompt.
+It integrates popular auditing tools and wraps the results in visually rich HTML and PDF reports. It also leverages **LLMs (Ollama with LLaMA 3)** to provide intelligent improvement suggestions.
 
-## Installation
+---
 
-TODO: Replace `UPDATE_WITH_YOUR_GEM_NAME_IMMEDIATELY_AFTER_RELEASE_TO_RUBYGEMS_ORG` with your gem name right after releasing it to RubyGems.org. Please do not do it earlier due to security reasons. Alternatively, replace this section with instructions to install your gem from git if you don't plan to release to RubyGems.org.
+## ✨ Features (Automated)
 
-Install the gem and add to the application's Gemfile by executing:
+### ✅ Automatically runs code quality tools:
+  - **Security Audit** using [Brakeman](https://github.com/presidentbeef/brakeman)
+  - **Dependency Vulnerability Scan** via [Bundler Audit](https://github.com/rubysec/bundler-audit)
+  - **Code Style Check** using [RuboCop](https://github.com/rubocop/rubocop)
+  - **Rails Best Practices Analysis** via [rails_best_practices](https://github.com/flyerhzm/rails_best_practices)
+  - **Code Duplication Detection** using [Flay](https://github.com/seattlerb/flay)
+  - **Code Complexity Score** using [Flog](https://github.com/seattlerb/flog)
+  - **License Compliance** via [License Finder](https://github.com/pivotal/LicenseFinder)
+  - **Code Smell Detection** with [Reek](https://github.com/troessner/reek)
+  - **Code Quality Visualization** using [RubyCritic](https://github.com/whitesmith/rubycritic)
+  - **Test Coverage Analysis** using [SimpleCov](https://github.com/simplecov-ruby/simplecov)
 
-```bash
-bundle add UPDATE_WITH_YOUR_GEM_NAME_IMMEDIATELY_AFTER_RELEASE_TO_RUBYGEMS_ORG
+### 📄 Report Generation
+- Automatically generates **HTML** and **PDF** reports for each tool
+- Graphical charts using Gruff.
+- Beautiful PDF report generation using Prawn and Prawn::Table.
+- PDF reports use **Puppeteer** via the `grover` gem (if available).
+- Automated Report Merging into a single PDF file
+- Organizes all output under the `report/` directory
+
+### 🧠 AI-Powered Code Review
+- Integrates with **Ollama** using the **LLaMA 3** model
+- Summarizes audit findings using LLMs
+- Provides human-like suggestions for improving code structure and test coverage
+- Analyzes both **source code** and **generated reports**
+
+### 💡 Fully Automatic
+- One command to run all audits, generate reports, and get AI recommendations — no manual steps required
+
+---
+
+## 📦 Installation
+
+Add this to your application's `Gemfile`:
+
+```ruby
+gem 'rails_code_auditor'
 ```
 
-If bundler is not being used to manage dependencies, install the gem by executing:
+Then run:
 
 ```bash
-gem install UPDATE_WITH_YOUR_GEM_NAME_IMMEDIATELY_AFTER_RELEASE_TO_RUBYGEMS_ORG
+bundle install
 ```
 
-## Usage
+## 🚀 Usage
+Run the full audit and generate reports:
 
-TODO: Write usage instructions here
+```bash
+bundle exec rails_code_auditor
+```
+Enable AI code review with Ollama:
 
-## Development
+```bash
+bundle exec rails_code_auditor --use-llm
+```
+## 🧠 LLM Integration with Ollama
+Install Ollama (https://ollama.com/)
 
-After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake spec` to run the tests. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
+Start the LLaMA 3 model locally:
 
-To install this gem onto your local machine, run `bundle exec rake install`. To release a new version, update the version number in `version.rb`, and then run `bundle exec rake release`, which will create a git tag for the version, push git commits and the created tag, and push the `.gem` file to [rubygems.org](https://rubygems.org).
+```bash
+ollama run llama3
+```
+Run the gem with --use-llm to get AI-generated insights.
 
-## Contributing
+## 🧪 SimpleCov Setup
+Ensure simplecov is added to your Gemfile:
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/[USERNAME]/rails_code_auditor. This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the [code of conduct](https://github.com/[USERNAME]/rails_code_auditor/blob/main/CODE_OF_CONDUCT.md).
+```ruby
+gem 'simplecov', require: false
+```
 
-## License
+## 🧰 Puppeteer Setup (Optional)
+Install Puppeteer using Yarn or npm:
 
-The gem is available as open source under the terms of the [MIT License](https://opensource.org/licenses/MIT).
+```bash
+yarn add puppeteer
+```
+PDF report generation will be skipped if Puppeteer isn't installed — a warning will be shown, but HTML reports will still be generated.
 
-## Code of Conduct
+## 📁 Output Structure
+```pgsql
+report/
+├── pdf/
+│   ├── rubycritic.pdf
+│   ├── rails_best_practices.pdf
+│   └── rubocop.pdf (if available)
+├── rubycritic/
+│   └── index.html
+├── rails_best_practices.html
+├── rubocop.html
+└── coverage/
+    └── index.html
+```
 
-Everyone interacting in the RailsCodeAuditor project's codebases, issue trackers, chat rooms and mailing lists is expected to follow the [code of conduct](https://github.com/[USERNAME]/rails_code_auditor/blob/main/CODE_OF_CONDUCT.md).
+## 🔧 Configuration
+You can customize what tools to enable, file paths, and output formats using an initializer or environment flags (coming soon)
+
+# 🙌 Contributing
+Pull requests are welcome! Please fork the repo and open a PR. For major changes, open an issue first to discuss your proposal.
+
+## 📄 License
+MIT License
+© 2025 sivamanikandan
+
+## 📌 Coming Soon
+- Report dashboard view in browser
+- GitHub Actions integration
+- Custom LLM model support
+
+```yaml
+---
+
+Let me know if you want:
+- Badge support (`Gem`, `License`, `CI`, etc.)
+- Project logo or screenshot inclusion
+- Interactive web-based report viewing via browser
+- A `bin/rails_code_auditor` launcher script
+
+I can generate all of these if needed.
+```
