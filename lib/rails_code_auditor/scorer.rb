@@ -52,13 +52,15 @@ module RailsCodeAuditor
       reek_issues = extract_issue_count(results.dig(:reek, :status))
       flay_issues = extract_issue_count(results.dig(:flay, :status))
       flog_issues = extract_issue_count(results.dig(:flog, :status))
+      fasterer_issues = extract_issue_count(results.dig(:fasterer, :status))
 
       tool_issues = [
         rubocop_issues,
         best_practice_issues,
         reek_issues,
         flay_issues,
-        flog_issues
+        flog_issues,
+        fasterer_issues
       ]
 
       total_issues = tool_issues.sum
@@ -79,6 +81,7 @@ module RailsCodeAuditor
 
     def self.extract_rubycritic_score(status)
       return nil unless status.is_a?(String)
+
       if status.include?("Score:") && (match = status.match(/Score:\s*([0-9.]+)/))
         match[1].to_f.round
       end
@@ -96,7 +99,7 @@ module RailsCodeAuditor
       return 100 unless status.is_a?(String)
 
       if status.match(/Coverage:\s*([\d.]+)/)
-        $1.to_f.round
+        ::Regexp.last_match(1).to_f.round
       else
         0
       end

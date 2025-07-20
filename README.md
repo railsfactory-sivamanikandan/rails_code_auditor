@@ -19,6 +19,7 @@ It integrates popular auditing tools and wraps the results in visually rich HTML
   - **Code Smell Detection** with [Reek](https://github.com/troessner/reek)
   - **Code Quality Visualization** using [RubyCritic](https://github.com/whitesmith/rubycritic)
   - **Test Coverage Analysis** using [SimpleCov](https://github.com/simplecov-ruby/simplecov)
+  - **Performance Improvements** Suggestions using [Fasterer](https://github.com/DamirSvrtan/fasterer)
 
 ### 📄 Report Generation
 - Automatically generates **HTML** and **PDF** reports for each tool

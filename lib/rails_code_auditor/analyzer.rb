@@ -1,4 +1,4 @@
-require 'fileutils'
+require "fileutils"
 
 module RailsCodeAuditor
   class Analyzer
@@ -10,7 +10,11 @@ module RailsCodeAuditor
       if output.empty?
         nil
       else
-        raw ?  raw : JSON.parse(output) rescue output
+        begin
+          raw ? output : JSON.parse(output)
+        rescue StandardError
+          output
+        end
       end
     end
 
@@ -22,6 +26,7 @@ module RailsCodeAuditor
       path = File.join(REPORT_FOLDER, "#{tool_name}.html")
       File.open(path, "w") do |f|
         f.puts "<html><head><title>#{tool_name.capitalize} Report</title></head><body><pre>"
+        f.puts "<h1>#{tool_name.capitalize} Report</h1>"
         f.puts content
         f.puts "</pre></body></html>"
       end
@@ -87,6 +92,10 @@ module RailsCodeAuditor
         rubycritic: {
           json: run_cmd("rubycritic --format json"),
           html_path: generate_rubycritic_html
+        },
+        fasterer: {
+          text: run_cmd("fasterer ."),
+          html_path: write_html_report("fasterer", run_cmd("fasterer ."))
         }
       }
     end

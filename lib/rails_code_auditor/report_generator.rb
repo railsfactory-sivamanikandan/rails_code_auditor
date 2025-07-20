@@ -11,6 +11,7 @@ module RailsCodeAuditor
         license_finder: summarize_license_finder(results[:license_finder][:json]),
         reek: summarize_reek(results[:reek][:json]),
         rubycritic: summarize_rubycritic(results[:rubycritic][:json]),
+        fasterer: summarize_fasterer(results[:fasterer][:text]),
       }
     end
 
@@ -111,6 +112,14 @@ module RailsCodeAuditor
       {
         status: score ? "Score: #{score}" : "No score found",
         details: issues.first(10).join("\n") + (issues.size > 10 ? "\n..." : "")
+      }
+    end
+
+    def self.summarize_fasterer(raw)
+      suggestions = raw.lines.select { |line| line.include?(':') }
+      {
+        status: "#{suggestions.size} performance suggestion#{'s' unless suggestions.size == 1}",
+        details: suggestions.join("\n")
       }
     end
   end

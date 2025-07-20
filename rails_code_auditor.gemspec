@@ -60,6 +60,7 @@ Gem::Specification.new do |spec|
   spec.add_runtime_dependency "simplecov", "~> 0.22"
   spec.add_runtime_dependency "grover"
   spec.add_runtime_dependency "combine_pdf"
+  spec.add_runtime_dependency "fasterer", "~> 0.7"
   # For more information and examples about making a new gem, check out our
   # guide at: https://bundler.io/guides/creating_gem.html
 end
