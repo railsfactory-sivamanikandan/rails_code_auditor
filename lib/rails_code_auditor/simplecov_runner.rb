@@ -11,7 +11,7 @@ module RailsCodeAuditor
           status: "Skipped",
           success: false,
           error: "simplecov gem not found in the target Rails app",
-          details: "simplecov gem not found in the target Rails app",
+          details: "simplecov gem not found in the target Rails app"
         }
       end
 
@@ -34,7 +34,8 @@ module RailsCodeAuditor
         elsif Dir.exist?("test")
           "SIMPLECOV_COMMAND_NAME='Rails Tests' bundle exec ruby -r./#{setup_file} -S rails test"
         else
-          return { status: "Coverage: 0%", error: "No test directory found", success: false, details: "No test directory found", }
+          return { status: "Coverage: 0%", error: "No test directory found", success: false,
+                   details: "No test directory found" }
         end
 
       success = system(test_cmd)
@@ -47,14 +48,14 @@ module RailsCodeAuditor
           status: "Coverage: #{percent}%",
           success: success,
           raw_result: json,
-          details: json,
+          details: json
         }
       else
         {
           status: "Coverage: 0%",
           success: success,
           error: "Coverage file not generated",
-          details: "Coverage file not generated",
+          details: "Coverage file not generated"
         }
       end
     ensure
@@ -64,7 +65,7 @@ module RailsCodeAuditor
     def self.simplecov_installed_in_project?
       spec = Bundler.locked_gems.specs.find { |s| s.name == "simplecov" }
       !spec.nil?
-    rescue
+    rescue StandardError
       false
     end
   end

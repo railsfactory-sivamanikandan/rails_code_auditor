@@ -9,3 +9,5 @@
 
 # rspec failure tracking
 .rspec_status
+rails_best_practices_output.json
+rails_code_auditor-0.1.0.gem

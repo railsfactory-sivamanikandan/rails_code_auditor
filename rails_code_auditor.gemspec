@@ -32,35 +32,32 @@ Gem::Specification.new do |spec|
   spec.bindir = "exe"
   spec.executables = spec.files.grep(%r{\Aexe/}) { |f| File.basename(f) }
   spec.require_paths = ["lib"]
-  spec.files = [
-    "lib/rails_code_auditor.rb",
-    "lib/rails_code_auditor/analyzer.rb",
-    "lib/rails_code_auditor/report_generator.rb",
-    "lib/rails_code_auditor/pdf_generator.rb",
-    "lib/rails_code_auditor/grapher.rb",
-    "lib/rails_code_auditor/scorer.rb",
-    "lib/rails_code_auditor/llm_client.rb",
-    "lib/rails_code_auditor/simplecov_runner.rb",
-    "lib/rails_code_auditor/html_to_pdf_converter.rb"
-  ]
+  spec.files = Dir["lib/**/*.rb"]
 
+  required_ruby_version = Gem::Version.new(RUBY_VERSION)
   # Uncomment to register a new dependency of your gem
-  # spec.add_dependency "example-gem", "~> 1.0"
   spec.add_runtime_dependency "brakeman", "~> 6.0"
   spec.add_runtime_dependency "bundler-audit", "~> 0.9"
+  spec.add_runtime_dependency "combine_pdf"
+  spec.add_runtime_dependency "fasterer", "~> 0.7"
   spec.add_runtime_dependency "flay", "~> 2.13.3"
   spec.add_runtime_dependency "flog", "~> 4.8"
   spec.add_runtime_dependency "gruff", "~> 0.21"
-  spec.add_runtime_dependency "license_finder", "~> 7.0"
   spec.add_runtime_dependency "prawn", "~> 2.4"
   spec.add_runtime_dependency "prawn-table", "~> 0.2.2"
   spec.add_runtime_dependency "rails_best_practices", "~> 1.22"
-  spec.add_runtime_dependency "rubocop", "~> 1.60"
-  spec.add_runtime_dependency "rubycritic", "~> 4.9.2"
   spec.add_runtime_dependency "simplecov", "~> 0.22"
-  spec.add_runtime_dependency "grover"
-  spec.add_runtime_dependency "combine_pdf"
-  spec.add_runtime_dependency "fasterer", "~> 0.7"
+
+  # Optional for modern environments
+  if required_ruby_version >= Gem::Version.new("2.7")
+    spec.add_runtime_dependency "license_finder", "~> 7.0"
+    spec.add_runtime_dependency "rubocop", "~> 1.60"
+    spec.add_runtime_dependency "rubycritic", "~> 4.9.2"
+  end
+
+  # Optional Rails >= 5 feature
+  rails_version = defined?(Rails) ? Gem::Version.new(Rails::VERSION::STRING) : nil
+  spec.add_runtime_dependency "grover" if rails_version.nil? || rails_version >= Gem::Version.new("5.0")
   # For more information and examples about making a new gem, check out our
   # guide at: https://bundler.io/guides/creating_gem.html
 end

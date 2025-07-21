@@ -1,4 +1,11 @@
-# frozen_string_literal: true
+require "simplecov"
+
+SimpleCov.start do
+  add_filter "/spec/"
+  enable_coverage :branch
+end
+
+puts "[SimpleCov] started for gem"
 
 require "rails_code_auditor"
 
