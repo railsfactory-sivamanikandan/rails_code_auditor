@@ -116,15 +116,21 @@ module RailsCodeAuditor
         html_path: run_cmd("reek --format html > #{REPORT_FOLDER}/reek.html", raw: true)
       }
 
-      results[:rubycritic] = if ruby_version >= Gem::Version.new("2.7")
-                               {
-                                 json: run_cmd("rubycritic --format json"),
-                                 html_path: run_cmd("rubycritic --no-browser --path #{REPORT_FOLDER}/rubycritic",
-                                                    raw: true)
-                               }
-                             else
-                               { skipped: true, reason: "RubyCritic requires Ruby >= 2.7" }
-                             end
+      begin
+        Timeout.timeout(300) do
+          results[:rubycritic] = if ruby_version >= Gem::Version.new("2.7")
+                                   {
+                                     json: run_cmd("rubycritic --format json"),
+                                     html_path: run_cmd("rubycritic --no-browser --path #{REPORT_FOLDER}/rubycritic",
+                                                        raw: true)
+                                   }
+                                 else
+                                   { skipped: true, reason: "RubyCritic requires Ruby >= 2.7" }
+                                 end
+        end
+      rescue Timeout::Error
+        results[:rubycritic] = { error: "RubyCritic timed out after 5 minutes" }
+      end
 
       results[:fasterer] = {
         text: run_cmd("fasterer ."),

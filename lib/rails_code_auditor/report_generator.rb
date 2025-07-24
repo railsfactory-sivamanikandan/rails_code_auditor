@@ -34,17 +34,30 @@ module RailsCodeAuditor
     end
 
     def self.summarize_brakeman(raw)
-      json = begin
-        JSON.parse(raw)
-      rescue StandardError
-        {}
-      end
+      json = parse_json_input(raw, label: "Brakeman")
       warnings = json["warnings"] || []
       summary = warnings.map { |w| "#{w["warning_type"]}: #{w["message"]} in #{w["file"]}" }.join("\n")
       {
         status: "#{warnings.size} security warning#{"s" unless warnings.size == 1}",
         details: summary
       }
+    end
+
+    def self.parse_json_input(input, label: "JSON")
+      case input
+      when String
+        begin
+          JSON.parse(input)
+        rescue JSON::ParserError => e
+          warn "❌ Failed to parse #{label} string: #{e.message}"
+          {}
+        end
+      when Hash
+        input
+      else
+        warn "❌ Unsupported #{label} input type: #{input.class}"
+        {}
+      end
     end
 
     def self.summarize_bundler(raw)
@@ -96,7 +109,7 @@ module RailsCodeAuditor
     end
 
     def self.summarize_text_tool(name, raw)
-      lines = raw.split("\n").reject(&:empty?)
+      lines = raw ? raw.split("\n").reject(&:empty?) : []
       {
         status: "#{lines.size} issue#{"s" unless lines.size == 1}",
         details: lines.first(10).join("\n") + (lines.size > 10 ? "\n..." : "")

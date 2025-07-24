@@ -43,13 +43,23 @@ module RailsCodeAuditor
       coverage_path = "coverage/.last_run.json"
       if File.exist?(coverage_path)
         json = JSON.parse(File.read(coverage_path))
-        percent = json["result"]["covered_percent"].round(2)
-        {
-          status: "Coverage: #{percent}%",
-          success: success,
-          raw_result: json,
-          details: json
-        }
+        percent = json["result"]["covered_percent"] || json["result"]["line"]
+        if percent
+          percent = percent.round(2)
+          {
+            status: "Coverage: #{percent}%",
+            success: success,
+            raw_result: json,
+            details: json
+          }
+        else
+          {
+            status: "Coverage: N/A",
+            success: false,
+            error: "Coverage percentage not found in report",
+            details: json
+          }
+        end
       else
         {
           status: "Coverage: 0%",
