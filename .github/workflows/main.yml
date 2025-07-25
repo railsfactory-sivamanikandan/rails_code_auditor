@@ -18,10 +18,17 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+      - name: Install ImageMagick dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y imagemagick libmagickwand-dev
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: ${{ matrix.ruby }}
           bundler-cache: true
-      - name: Run the default task
-        run: bundle exec rake
+      - name: Install dependencies
+        run: bundle install
+
+      - name: Run tests
+        run: bundle exec rspec

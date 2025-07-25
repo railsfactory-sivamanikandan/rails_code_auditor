@@ -15,11 +15,17 @@ module RailsCodeAuditor
   def self.run(args)
     puts "[*] Running Rails Code Auditor..."
 
+    # Parse CLI options
+    use_llm     = args.include?("--use-llm")
+    model_arg   = args[args.index("--llm-model") + 1] if args.include?("--llm-model")
+    endpoint_arg = args[args.index("--llm-endpoint") + 1] if args.include?("--llm-endpoint")
+
     raw_results = Analyzer.run_all
     results = ReportGenerator.normalize(raw_results)
     results[:simplecov] = SimpleCovRunner.run
-    scores = if args.include?("--use-llm")
-               LlmClient.score_with_llm(results) || Scorer.score(results)
+    scores = if use_llm
+               LlmClient.score_with_llm(results, model: model_arg || "llama3",
+                                                 endpoint: endpoint_arg || "http://localhost:11434/api/generate") || Scorer.score(results)
              else
                Scorer.score(results)
              end

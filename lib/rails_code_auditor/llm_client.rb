@@ -9,12 +9,13 @@ module RailsCodeAuditor
         tool.dup.tap do |entry|
           if entry.is_a?(Hash) && entry[:details].is_a?(String)
             entry[:details] = entry[:details].slice(0, 500) # Trim details to avoid LLM overload
-            entry[:details].gsub!(/\e\[[\d;]*m/, '')         # Remove ANSI color codes
+            entry[:details].gsub!(/\e\[[\d;]*m/, "") # Remove ANSI color codes
           end
         end
       end
     end
-    def self.score_with_llm(json_results)
+
+    def self.score_with_llm(json_results, endpoint: "http://localhost:11434/api/generate", model: "llama3")
       sanitized = sanitize_results(json_results)
       puts "[*] Scoring with LLM (LLaMA3)..."
 
@@ -34,9 +35,9 @@ module RailsCodeAuditor
         #{JSON.pretty_generate(sanitized)}
       PROMPT
 
-      uri = URI("http://localhost:11434/api/generate")
+      uri = URI(endpoint)
       body = {
-        model: "llama3",
+        model: model,
         prompt: prompt,
         stream: false
       }
@@ -48,22 +49,19 @@ module RailsCodeAuditor
       # Try to extract JSON from any surrounding text
       json_match = raw_output.match(/\{.*\}/m)
 
-      if json_match
-        parsed_scores = JSON.parse(json_match[0])
-        scored_results = parsed_scores.transform_values do |score|
-          remark = case score
-                  when 90..100 then "Excellent"
-                  when 75..89  then "Good"
-                  when 60..74  then "Average"
-                  else              "Needs Improvement"
-                  end
-          { score: score, remark: remark }
-        end
-        scored_results
-      else
-        raise "Response did not contain valid JSON"
+      raise "Response did not contain valid JSON" unless json_match
+
+      parsed_scores = JSON.parse(json_match[0])
+      parsed_scores.transform_values do |score|
+        remark = case score
+                 when 90..100 then "Excellent"
+                 when 75..89  then "Good"
+                 when 60..74  then "Average"
+                 else "Needs Improvement"
+                 end
+        { score: score, remark: remark }
       end
-    rescue => e
+    rescue StandardError => e
       puts "[!] LLM scoring failed: #{e.message}"
       nil
     end
