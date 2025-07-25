@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    rails_code_auditor (0.1.0)
+    rails_code_auditor (0.1.1)
       brakeman (~> 6.0)
       bundler-audit (~> 0.9)
       combine_pdf

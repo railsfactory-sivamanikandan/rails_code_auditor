@@ -65,6 +65,11 @@ Enable AI code review with Ollama:
 ```bash
 bundle exec rails_code_auditor --use-llm
 ```
+Run with custom endpoint & model
+```bash
+rails_code_auditor --use-llm --llm-endpoint http://localhost:11434/api/generate --llm-model deepseek-coder
+```
+Note: By default endpoint: http://localhost:11434/api/generate, model: 'llama3'
 ## 🧠 LLM Integration with Ollama
 Install Ollama (https://ollama.com/)
 
